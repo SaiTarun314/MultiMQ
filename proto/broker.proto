@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+message ProduceRequest {
+    string channel_id = 1;
+    string message = 2;
+}
+
+message ProduceResponse {
+    bool success = 1;
+}
+
+message ConsumeRequest {
+    string channel_id = 1;
+}
+
+message ConsumeResponse {
+    string message = 1;
+}
+
+service BrokerService {
+    rpc Produce(ProduceRequest) returns (ProduceResponse);
+    rpc Consume(ConsumeRequest) returns (ConsumeResponse);
+}
