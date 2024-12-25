@@ -6,7 +6,7 @@
 
 class ProcessingServicesImpl : public ProcessingServices::Service {
     ::grpc::Status computeSum(::grpc::ServerContext* context, const ::Point3* request, ::Numeric* response) {
-        std::cout<<"In Compute Sum function";
+        std::cout<<"In Compute Sum function"<<std::endl;
         response->set_val(request->x() + request->y() + request->z());
         
         return grpc::Status::OK;
@@ -14,7 +14,7 @@ class ProcessingServicesImpl : public ProcessingServices::Service {
 };
 
 int main() {
-    std::cout<<"Hello World!!!";
+    std::cout<<"Hello World!!!"<<std::endl;
 
     ProcessingServicesImpl service;
     grpc::ServerBuilder builder;
