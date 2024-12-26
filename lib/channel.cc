@@ -9,6 +9,7 @@ void Channel::produce(const std::string& message) {
 }
 
 std::string Channel::consume() {
+    if(messages.size() == 0) return "";
     std::string message = messages.front();
     messages.pop();
     std::cout << "Message consumed from Channel " << name << " -> " << message << std::endl;
