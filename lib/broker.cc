@@ -6,7 +6,7 @@
 bool Broker::produce(const std::string& topic_name, const std::string& message) {    
     for(auto &channelInfo: topicChannels[topic_name]) {
         std::string partitionName = channelInfo.partition.partitionName;
-        auto client = std::move(getStub(partitionName));
+        auto client = getStub(partitionName);
 
         PartitionProduceRequest req;
         PartitionProduceResponse res;
@@ -28,7 +28,7 @@ std::string Broker::consume(const std::string& topic_name) {
     std::string message = ""; 
     for(auto &channelInfo: topicChannels[topic_name]) {
         std::string partitionName = channelInfo.partition.partitionName;
-        auto client = std::move(getStub(partitionName));
+        auto client = getStub(partitionName);
 
         PartitionConsumeRequest req;
         PartitionConsumeResponse res;
@@ -65,12 +65,12 @@ bool Broker::createTopic(const std::string& topic_name, int& replication_factor)
             PartitionInfo partitionInfo;
             
             if(index <= partitions.size()) {
-                selectedStub = std::move(partitionStubs[partitions[index-1]]);
+                selectedStub = partitionStubs[partitions[index-1]];
                 partitionInfo.partitionName = partitions[index-1];
                 partitionInfo.port = partitionPorts[partitions[index-1]];
             } else {
                 int randomPartition = std::floor(random()*(partitions.size()));
-                selectedStub = std::move(partitionStubs[partitions[randomPartition]]);
+                selectedStub = partitionStubs[partitions[randomPartition]];
                 partitionInfo.partitionName = partitions[randomPartition];
                 partitionInfo.port = partitionPorts[partitions[randomPartition]];
             }
