@@ -1,0 +1,44 @@
+syntax = "proto3";
+
+message PartitionCreateChannelRequest {
+    string channel_id = 1;
+}
+
+message PartitionCreateChannelResponse {
+    bool success = 1;
+}
+
+message PartitionProduceRequest {
+    string channel_id = 1;
+    string message = 2;
+}
+
+message PartitionProduceResponse {
+    bool success = 1;
+}
+
+message PartitionConsumeRequest {
+    string channel_id = 1;
+}
+
+message PartitionConsumeResponse {
+    string message = 1;
+}
+
+message PartitionHealthCheckRequest { }
+
+message PartitionChannelHealthCheckRequest { 
+    string channel_id = 1;
+}
+
+message PartitionHealthCheckResponse { 
+    bool healthy = 1;
+}
+
+service PartitionService {
+    rpc CreateChannel(PartitionCreateChannelRequest) returns (PartitionCreateChannelResponse);
+    rpc Produce(PartitionProduceRequest) returns (PartitionProduceResponse);
+    rpc Consume(PartitionConsumeRequest) returns (PartitionConsumeResponse);
+    rpc PartitionHealthCheck(PartitionHealthCheckRequest) returns (PartitionHealthCheckResponse);
+    rpc HealthCheck(PartitionChannelHealthCheckRequest) returns (PartitionHealthCheckResponse);
+}

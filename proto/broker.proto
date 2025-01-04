@@ -1,33 +1,43 @@
 syntax = "proto3";
 
-message CreateTopicRequest {
+message BrokerCreateTopicRequest {
     string topic_name = 1;
     int32 replication_factor = 2;
 }
 
-message CreateTopicResponse {
+message BrokerCreateTopicResponse {
     bool success = 1;
 }
 
-message ProduceRequest {
+message BrokerLinkPartitionRequest {
+    string partition_name = 1;
+    int32 port = 2;
+}
+
+message BrokerLinkPartitionResponse {
+    bool success = 1;
+}
+
+message BrokerProduceRequest {
     string topic_name = 1;
     string message = 2;
 }
 
-message ProduceResponse {
+message BrokerProduceResponse {
     bool success = 1;
 }
 
-message ConsumeRequest {
+message BrokerConsumeRequest {
     string topic_name = 1;
 }
 
-message ConsumeResponse {
+message BrokerConsumeResponse {
     string message = 1;
 }
 
 service BrokerService {
-    rpc Produce(ProduceRequest) returns (ProduceResponse);
-    rpc Consume(ConsumeRequest) returns (ConsumeResponse);
-    rpc CreateTopic(CreateTopicRequest) returns (CreateTopicResponse);
+    rpc Produce(BrokerProduceRequest) returns (BrokerProduceResponse);
+    rpc Consume(BrokerConsumeRequest) returns (BrokerConsumeResponse);
+    rpc CreateTopic(BrokerCreateTopicRequest) returns (BrokerCreateTopicResponse);
+    rpc LinkPartition(BrokerLinkPartitionRequest) returns (BrokerLinkPartitionResponse);
 }

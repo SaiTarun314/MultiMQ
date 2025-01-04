@@ -9,9 +9,10 @@ class BrokerServiceImpl : public BrokerService::Service {
  private:
     Broker broker;  
  public:
-    ::grpc::Status Produce(::grpc::ServerContext* context, const ::ProduceRequest* request, ::ProduceResponse* response) override;
-    ::grpc::Status Consume(::grpc::ServerContext* context, const ::ConsumeRequest* request, ::ConsumeResponse* response) override;
-    ::grpc::Status CreateTopic(::grpc::ServerContext* context, const ::CreateTopicRequest* request, ::CreateTopicResponse* response) override;
+    ::grpc::Status Produce(::grpc::ServerContext* context, const ::BrokerProduceRequest* request, ::BrokerProduceResponse* response) override;
+    ::grpc::Status Consume(::grpc::ServerContext* context, const ::BrokerConsumeRequest* request, ::BrokerConsumeResponse* response) override;
+    ::grpc::Status CreateTopic(::grpc::ServerContext* context, const ::BrokerCreateTopicRequest* request, ::BrokerCreateTopicResponse* response) override;
+    ::grpc::Status LinkPartition(::grpc::ServerContext* context, const ::BrokerLinkPartitionRequest* request, ::BrokerLinkPartitionResponse* response) override;
 };
 
 #endif  

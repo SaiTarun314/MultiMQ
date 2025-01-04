@@ -3,8 +3,7 @@
 #include "broker_service.h"
 
 int main() {
-    std::cout << "Hello World!!!" << std::endl;
-
+    
     BrokerServiceImpl service;
     grpc::ServerBuilder builder;
 
