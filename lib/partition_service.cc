@@ -28,12 +28,20 @@
 ::grpc::Status PartitionServiceImpl::Consume(::grpc::ServerContext* context, const ::PartitionConsumeRequest* request, ::PartitionConsumeResponse* response) {
     std::cout<<"Inside Consume\n";
     std::string message = partition.consume(request->channel_id());
-
+    
     if (request->channel_id().empty() || message.empty()) {
         return grpc::Status(grpc::StatusCode::NOT_FOUND, "Requested Channel not Found");
     }
 
     response->set_message(message);
+    return grpc::Status::OK;
+}
+
+::grpc::Status PartitionServiceImpl::UpdateOffset(::grpc::ServerContext* context, const ::PartitionOffsetRequest* request, ::PartitionOffsetResponse* response) {
+    std::string channelId = request->channel_id();
+    int offset = request->offset();
+
+    response->set_success(partition.updateChannelOffset(channelId, offset));
     return grpc::Status::OK;
 }
 
@@ -48,7 +56,7 @@
     return grpc::Status::OK;
 }
 
-::grpc::Status PartitionServiceImpl::HealthCheck(::grpc::ServerContext* context, const ::PartitionChannelHealthCheckRequest* request, ::PartitionHealthCheckResponse* response) {
+::grpc::Status PartitionServiceImpl::ChannelHealthCheck(::grpc::ServerContext* context, const ::PartitionChannelHealthCheckRequest* request, ::PartitionHealthCheckResponse* response) {
     std::cout<<"Inside Partition Channel HealthCheck\n";
     if(partition.channelHealthCheck(request->channel_id())) {
         response->set_healthy(true);
