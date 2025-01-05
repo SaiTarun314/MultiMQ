@@ -25,23 +25,54 @@ bool Broker::produce(const std::string& topic_name, const std::string& message) 
 }
 
 std::string Broker::consume(const std::string& topic_name) {
-    std::string message = ""; 
-    for(auto &channelInfo: topicChannels[topic_name]) {
-        std::string partitionName = channelInfo.partition.partitionName;
+    std::string message; 
+    
+    auto leaderChannelInfo = leaderChannels[topic_name];
+    auto channelInfos = topicChannels[topic_name];
+    while(message.empty()) {
+        leaderChannelInfo = leaderChannels[topic_name];
+        std::string partitionName = leaderChannelInfo.partition.partitionName;
         auto client = getStub(partitionName);
 
         PartitionConsumeRequest req;
         PartitionConsumeResponse res;
-        req.set_channel_id(channelInfo.channelId);
+        req.set_channel_id(leaderChannelInfo.channelId);
         grpc::ClientContext client_context;
 
         grpc::Status status = client->Consume(&client_context, req, &res);
-
+        if (status.error_code() == grpc::StatusCode::UNAVAILABLE) {
+            if(electNewLeaderChannel(topic_name)) {
+                continue;
+            } else {
+                message = "";
+                break;
+            }
+        }
         if (!status.ok()) {
             message = "";
-            continue;
+        } else {
+            message = res.message();
         }
-        message = res.message();
+        break;
+    }
+    
+    if(message.empty()) return message;
+
+    for(auto &channelInfo: topicChannels[topic_name]) {
+        if(channelInfo.channelId != leaderChannelInfo.channelId) {
+            std::string partitionName = channelInfo.partition.partitionName;
+            auto client = getStub(partitionName);
+
+            PartitionOffsetRequest req;
+            PartitionOffsetResponse res;
+            req.set_channel_id(channelInfo.channelId);
+            req.set_offset(1);
+            grpc::ClientContext client_context;
+
+            grpc::Status status = client->UpdateOffset(&client_context, req, &res);
+
+            // Implement a way to validate and sync if the offsets are updated
+        }
     }
 
     return message;
@@ -91,8 +122,7 @@ bool Broker::createTopic(const std::string& topic_name, int& replication_factor)
 
         std::string leaderChannelName= topic_name+"-channel-1";
         PartitionInfo partitionInfo(partitions[0], partitionPorts[partitions[0]]);
-
-        leaderChannels[leaderChannelName] = ChannelInfo(leaderChannelName, partitionInfo);
+        leaderChannels[topic_name] = ChannelInfo(leaderChannelName, partitionInfo);;
         return true;
     }
 }
@@ -133,4 +163,37 @@ bool Broker::linkPartitionToBroker(const std::string& partitionName, int& partit
     partitionStubs[partitionName] = std::move(stub);
 
     return true;
+}
+
+bool Broker::electNewLeaderChannel(const std::string& topic_name) {
+    // Perform health checks on all partitions and collect healthy partitions
+    std::vector<std::string> healthyPartitions;
+    for (const auto& partitionName : partitions) {
+        auto client = getStub(partitionName);
+
+        PartitionHealthCheckRequest req;
+        PartitionHealthCheckResponse res;
+        grpc::ClientContext client_context;
+
+        grpc::Status status = client->PartitionHealthCheck(&client_context, req, &res);
+        if (status.ok() && res.healthy()) {
+            healthyPartitions.push_back(partitionName);
+        }
+    }
+
+    if (healthyPartitions.empty()) {
+        std::cerr << "No healthy partitions available for topic: " << topic_name << std::endl;
+        return false;
+    }
+
+    // Select a leader channel from the channels associated with healthy partitions
+    for (const auto& channelInfo : topicChannels[topic_name]) {
+        if (std::find(healthyPartitions.begin(), healthyPartitions.end(), channelInfo.partition.partitionName) != healthyPartitions.end()) {
+            // Update the leader channel for this topic
+            leaderChannels[topic_name] = channelInfo;
+            return true;
+        }
+    }
+
+    return false;
 }

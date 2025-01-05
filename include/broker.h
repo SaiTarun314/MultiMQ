@@ -25,7 +25,7 @@ public:
     bool produce(const std::string& channelId, const std::string& message);         // Function to add Messages to the MQ
     std::string consume(const std::string& channelId);                              // Funtion to consume Messages from the MQ
     bool linkPartitionToBroker(const std::string& partitionName, int& partitionPort); // Funtion to link a Partition
-    
+    bool electNewLeaderChannel(const std::string& topic_name);                      // Function to re elect a new leader for the topic
 };
 
 #endif
